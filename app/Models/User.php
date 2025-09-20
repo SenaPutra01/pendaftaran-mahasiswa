@@ -21,6 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'status',
     ];
 
     /**
@@ -44,5 +46,20 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function calonMahasiswa()
+    {
+        return $this->hasOne(CalonMahasiswa::class);
+    }
+
+    public function isAdministrator()
+    {
+        return $this->role === 'administrator';
+    }
+
+    public function isCalonMahasiswa()
+    {
+        return $this->role === 'mahasiswa';
     }
 }
