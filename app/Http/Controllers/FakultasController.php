@@ -31,47 +31,47 @@ class FakultasController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    // public function store(Request $request)
-    // {
-    //     $validator = Validator::make($request->all(), [
-    //         'kode_fakultas' => [
-    //             'required',
-    //             'string',
-    //             'max:10',
-    //             'unique:fakultas,kode_fakultas',
-    //             'regex:/^[A-Z0-9]+$/'
-    //         ],
-    //         'nama_fakultas' => 'required|string|max:100|unique:fakultas,nama_fakultas',
-    //         'deskripsi' => 'nullable|string|max:500'
-    //     ], [
-    //         'kode_fakultas.required' => 'Kode fakultas wajib diisi.',
-    //         'kode_fakultas.unique' => 'Kode fakultas sudah digunakan.',
-    //         'kode_fakultas.regex' => 'Kode fakultas hanya boleh mengandung huruf kapital dan angka.',
-    //         'kode_fakultas.max' => 'Kode fakultas maksimal 10 karakter.',
-    //         'nama_fakultas.required' => 'Nama fakultas wajib diisi.',
-    //         'nama_fakultas.unique' => 'Nama fakultas sudah digunakan.',
-    //         'nama_fakultas.max' => 'Nama fakultas maksimal 100 karakter.',
-    //         'deskripsi.max' => 'Deskripsi maksimal 500 karakter.'
-    //     ]);
 
-    //     if ($validator->fails()) {
-    //         return redirect()->back()
-    //             ->withErrors($validator)
-    //             ->withInput()
-    //             ->with('error', 'Terjadi kesalahan validasi.');
-    //     }
 
-    //     try {
-    //         Fakultas::create($request->all());
 
-    //         return redirect()->route('admin.fakultas.index')
-    //             ->with('success', 'Fakultas berhasil ditambahkan.');
-    //     } catch (\Exception $e) {
-    //         return redirect()->back()
-    //             ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
-    //             ->withInput();
-    //     }
-    // }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public function store(Request $request)
     {
@@ -93,8 +93,8 @@ class FakultasController extends Controller
         }
 
         try {
-            // Generate kode fakultas otomatis
-            $prefix = strtoupper(substr($request->nama_fakultas, 0, 2)); // ambil 2 huruf pertama
+
+            $prefix = strtoupper(substr($request->nama_fakultas, 0, 2));
             $lastFakultas = Fakultas::where('kode_fakultas', 'like', $prefix . '%')
                 ->orderBy('kode_fakultas', 'desc')
                 ->first();
@@ -108,7 +108,7 @@ class FakultasController extends Controller
 
             $kodeFakultas = $prefix . '-' . $number;
 
-            // Simpan data
+
             Fakultas::create([
                 'kode_fakultas' => $kodeFakultas,
                 'nama_fakultas' => $request->nama_fakultas,
@@ -149,61 +149,61 @@ class FakultasController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    // public function update(Request $request, $kode_fakultas)
-    // {
-    //     $fakultas = Fakultas::findOrFail($kode_fakultas);
 
-    //     $validator = Validator::make($request->all(), [
-    //         'kode_fakultas' => [
-    //             'required',
-    //             'string',
-    //             'max:10',
-    //             'unique:fakultas,kode_fakultas,' . $fakultas->kode_fakultas . ',kode_fakultas',
-    //             'regex:/^[A-Z0-9]+$/'
-    //         ],
-    //         'nama_fakultas' => [
-    //             'required',
-    //             'string',
-    //             'max:100',
-    //             'unique:fakultas,nama_fakultas,' . $fakultas->kode_fakultas . ',kode_fakultas'
-    //         ],
-    //         'deskripsi' => 'nullable|string|max:500'
-    //     ], [
-    //         'kode_fakultas.required' => 'Kode fakultas wajib diisi.',
-    //         'kode_fakultas.unique' => 'Kode fakultas sudah digunakan.',
-    //         'kode_fakultas.regex' => 'Kode fakultas hanya boleh mengandung huruf kapital dan angka.',
-    //         'kode_fakultas.max' => 'Kode fakultas maksimal 10 karakter.',
-    //         'nama_fakultas.required' => 'Nama fakultas wajib diisi.',
-    //         'nama_fakultas.unique' => 'Nama fakultas sudah digunakan.',
-    //         'nama_fakultas.max' => 'Nama fakultas maksimal 100 karakter.',
-    //         'deskripsi.max' => 'Deskripsi maksimal 500 karakter.'
-    //     ]);
 
-    //     if ($validator->fails()) {
-    //         return redirect()->back()
-    //             ->withErrors($validator)
-    //             ->withInput()
-    //             ->with('error', 'Terjadi kesalahan validasi.');
-    //     }
 
-    //     try {
-    //         $fakultas->update($request->all());
 
-    //         return redirect()->route('admin.fakultas.index')
-    //             ->with('success', 'Fakultas berhasil diperbarui.');
-    //     } catch (\Exception $e) {
-    //         return redirect()->back()
-    //             ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
-    //             ->withInput();
-    //     }
-    // }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public function update(Request $request, $kode_fakultas)
     {
-        // Ambil data Fakultas berdasarkan kode
+
         $fakultas = Fakultas::findOrFail($kode_fakultas);
 
-        // Validasi input
+
         $validator = Validator::make($request->all(), [
             'nama_fakultas' => [
                 'required',
@@ -227,7 +227,7 @@ class FakultasController extends Controller
         }
 
         try {
-            // Update hanya field yang bisa diubah
+
             $fakultas->update([
                 'nama_fakultas' => $request->nama_fakultas,
                 'deskripsi' => $request->deskripsi,
@@ -250,7 +250,7 @@ class FakultasController extends Controller
     {
         $fakultas = Fakultas::findOrFail($kode_fakultas);
 
-        // Cek apakah fakultas memiliki program studi
+
         if ($fakultas->programStudi()->count() > 0) {
             return redirect()->back()
                 ->with('error', 'Tidak dapat menghapus fakultas karena masih memiliki program studi.');

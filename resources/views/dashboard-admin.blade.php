@@ -352,8 +352,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    // Chart Pendaftar per Bulan
-const pendaftarCtx = document.getElementById('pendaftarChart').getContext('2d');
+    const pendaftarCtx = document.getElementById('pendaftarChart').getContext('2d');
 const pendaftarChart = new Chart(pendaftarCtx, {
     type: 'bar',
     data: {
@@ -379,7 +378,6 @@ const pendaftarChart = new Chart(pendaftarCtx, {
     }
 });
 
-// Chart Pembayaran
 const pembayaranCtx = document.getElementById('pembayaranChart').getContext('2d');
 const pembayaranChart = new Chart(pembayaranCtx, {
     type: 'doughnut',

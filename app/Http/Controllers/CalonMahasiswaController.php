@@ -18,15 +18,15 @@ class CalonMahasiswaController extends Controller
      */
     public function index(Request $request)
     {
-        // Query dasar
+
         $query = CalonMahasiswa::with(['user', 'programStudi.fakultas']);
 
-        // Filter program studi
+
         if ($request->has('program_studi') && !empty($request->program_studi)) {
             $query->where('kode_program_studi', $request->program_studi);
         }
 
-        // Filter tanggal
+
         if ($request->has('tanggal_mulai') && !empty($request->tanggal_mulai)) {
             $query->whereDate('created_at', '>=', $request->tanggal_mulai);
         }
@@ -35,7 +35,7 @@ class CalonMahasiswaController extends Controller
             $query->whereDate('created_at', '<=', $request->tanggal_selesai);
         }
 
-        // Pencarian
+
         if ($request->has('search') && !empty($request->search)) {
             $searchTerm = $request->search;
             $query->where(function ($q) use ($searchTerm) {
@@ -48,17 +48,17 @@ class CalonMahasiswaController extends Controller
             });
         }
 
-        // Pagination
+
         $calonMahasiswa = $query->orderBy('created_at', 'desc')->paginate(10);
 
-        // Data statistik
+
         $totalPendaftar = CalonMahasiswa::count();
         $pendaftarHariIni = CalonMahasiswa::whereDate('created_at', today())->count();
         $pendaftarBulanIni = CalonMahasiswa::whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
             ->count();
 
-        // Data untuk filter
+
         $programStudi = ProgramStudi::with('fakultas')->get();
 
         return view('calon-mahasiswa.index', compact(
@@ -132,15 +132,15 @@ class CalonMahasiswaController extends Controller
 
             $calon = CalonMahasiswa::findOrFail($id);
 
-            // Handle upload foto
+
             $fotoPath = $calon->foto;
             if ($request->hasFile('foto')) {
-                // Hapus foto lama jika ada
+
                 if ($calon->foto && Storage::exists($calon->foto)) {
                     Storage::delete($calon->foto);
                 }
 
-                // Simpan foto baru
+
                 $fotoPath = $request->file('foto')->store('foto-calon-mahasiswa', 'public');
             }
 
@@ -155,7 +155,7 @@ class CalonMahasiswaController extends Controller
                 'foto' => $fotoPath,
             ]);
 
-            // Update email user jika ada perubahan
+
             if ($calon->user) {
                 $calon->user->update([
                     'email' => $request->email
@@ -233,12 +233,12 @@ class CalonMahasiswaController extends Controller
 
             $calon = CalonMahasiswa::findOrFail($id);
 
-            // Hapus foto jika ada
+
             if ($calon->foto && Storage::exists($calon->foto)) {
                 Storage::delete($calon->foto);
             }
 
-            // Hapus user terkait jika ada
+
             if ($calon->user) {
                 $calon->user->delete();
             }
@@ -261,10 +261,10 @@ class CalonMahasiswaController extends Controller
      */
     public function export(Request $request)
     {
-        // Query data untuk export
+
         $query = CalonMahasiswa::with(['user', 'programStudi.fakultas']);
 
-        // Filter jika ada
+
         if ($request->has('program_studi') && !empty($request->program_studi)) {
             $query->where('kode_program_studi', $request->program_studi);
         }
@@ -279,17 +279,17 @@ class CalonMahasiswaController extends Controller
 
         $data = $query->orderBy('created_at', 'desc')->get();
 
-        // Header untuk CSV
+
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="calon-mahasiswa-' . date('Y-m-d') . '.csv"',
         ];
 
-        // Callback untuk generate CSV
+
         $callback = function () use ($data) {
             $file = fopen('php://output', 'w');
 
-            // Header CSV
+
             fputcsv($file, [
                 'Nama Lengkap',
                 'Email',
@@ -304,7 +304,7 @@ class CalonMahasiswaController extends Controller
                 'Status Verifikasi'
             ]);
 
-            // Data CSV
+
             foreach ($data as $row) {
                 fputcsv($file, [
                     $row->nama_lengkap,

@@ -72,164 +72,8 @@
 
 @section('scripts')
 <script>
-    // Fungsi untuk membuka modal edit
-// async function openEditModal(userId) {
-//     try {
-//         console.log('Membuka modal edit untuk user ID:', userId);
-        
-//         const response = await fetch(`/admin/users/${userId}/data`);
-//         const result = await response.json();
-        
-//         console.log('Response dari server:', result);
-        
-//         if (result.success) {
-//             const user = result.data;
-            
-//             // Isi form dengan data user
-//             document.getElementById('editUserForm').action = `/admin/users/${user.id}`;
-//             document.getElementById('edit_user_id').value = user.id;
-//             document.getElementById('edit_name').value = user.name;
-//             document.getElementById('edit_email').value = user.email;
-//             document.getElementById('edit_role').value = user.role;
-            
-//             // Jika user adalah calon mahasiswa dan memiliki data
-//             if (user.role === 'mahasiswa' && user.calon_mahasiswa) {
-//                 const cm = user.calon_mahasiswa;
-//                 document.getElementById('edit_calon_mahasiswa_id').value = cm.id;
-//                 document.getElementById('edit_program_studi').value = cm.kode_program_studi;
-//                 document.getElementById('edit_jenis_kelamin').value = cm.jenis_kelamin;
-//                 document.getElementById('edit_tanggal_lahir').value = cm.tanggal_lahir;
-//                 document.getElementById('edit_alamat').value = cm.alamat;
-//                 document.getElementById('edit_no_telepon').value = cm.no_telepon;
-//                 document.getElementById('edit_asal_sekolah').value = cm.asal_sekolah;
-//             } else {
-//                 // Reset fields jika bukan calon mahasiswa
-//                 document.getElementById('edit_calon_mahasiswa_id').value = '';
-//                 document.getElementById('edit_program_studi').value = '';
-//                 document.getElementById('edit_jenis_kelamin').value = '';
-//                 document.getElementById('edit_tanggal_lahir').value = '';
-//                 document.getElementById('edit_alamat').value = '';
-//                 document.getElementById('edit_no_telepon').value = '';
-//                 document.getElementById('edit_asal_sekolah').value = '';
-//             }
-            
-//             // Toggle fields berdasarkan role
-//             toggleEditCalonMahasiswaFields();
-            
-//             // Tampilkan modal
-//             const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
-//             editModal.show();
-//         } else {
-//             alert('User tidak ditemukan: ' + result.message);
-//         }
-//     } catch (error) {
-//         console.error('Error:', error);
-//         alert('Terjadi kesalahan saat memuat data user: ' + error.message);
-//     }
-// }
+    document.addEventListener('DOMContentLoaded', function() {
 
-// // Tampilkan/sembunyikan field calon mahasiswa berdasarkan role
-// function toggleEditCalonMahasiswaFields() {
-//     const role = document.getElementById('edit_role').value;
-//     const fields = document.getElementById('editCalonMahasiswaFields');
-//     const programStudi = document.getElementById('edit_program_studi');
-    
-//     if (role === 'mahasiswa') {
-//         fields.style.display = 'block';
-//         if (programStudi) programStudi.setAttribute('required', 'required');
-//     } else {
-//         fields.style.display = 'none';
-//         if (programStudi) programStudi.removeAttribute('required');
-//     }
-// }
-
-// // Event listener untuk perubahan role di modal edit
-// const editRoleSelect = document.getElementById('edit_role');
-// if (editRoleSelect) {
-//     editRoleSelect.addEventListener('change', toggleEditCalonMahasiswaFields);
-// }
-
-// // Toggle fields untuk modal create
-// const createRoleSelect = document.getElementById('create_role');
-// if (createRoleSelect) {
-//     createRoleSelect.addEventListener('change', function() {
-//         const fields = document.getElementById('createCalonMahasiswaFields');
-//         const programStudi = document.getElementById('create_program_studi');
-        
-//         if (this.value === 'mahasiswa') {
-//             if (fields) fields.style.display = 'block';
-//             if (programStudi) programStudi.setAttribute('required', 'required');
-//         } else {
-//             if (fields) fields.style.display = 'none';
-//             if (programStudi) programStudi.removeAttribute('required');
-//         }
-//     });
-// }
-
-// // Reset form ketika modal create ditutup
-// const createModal = document.getElementById('createUserModal');
-// if (createModal) {
-//     createModal.addEventListener('hidden.bs.modal', function() {
-//         document.getElementById('createUserForm').reset();
-//         const fields = document.getElementById('createCalonMahasiswaFields');
-//         const programStudi = document.getElementById('create_program_studi');
-//         if (fields) fields.style.display = 'none';
-//         if (programStudi) programStudi.removeAttribute('required');
-//     });
-// }
-
-// // Reset form ketika modal edit ditutup
-// const editModalElement = document.getElementById('editUserModal');
-// if (editModalElement) {
-//     editModalElement.addEventListener('hidden.bs.modal', function() {
-//         const fields = document.getElementById('editCalonMahasiswaFields');
-//         const programStudi = document.getElementById('edit_program_studi');
-//         if (fields) fields.style.display = 'none';
-//         if (programStudi) programStudi.removeAttribute('required');
-//     });
-// }
-
-// // Validasi password confirmation
-// function validatePassword(formId) {
-//     const password = document.querySelector(`#${formId} [name="password"]`).value;
-//     const confirmPassword = document.querySelector(`#${formId} [name="password_confirmation"]`).value;
-    
-//     if (password && password !== confirmPassword) {
-//         alert('Konfirmasi password tidak sesuai!');
-//         return false;
-//     }
-//     return true;
-// }
-
-// // Event listener untuk form submit
-// const createForm = document.getElementById('createUserForm');
-// if (createForm) {
-//     createForm.addEventListener('submit', function(e) {
-//         if (!validatePassword('createUserForm')) {
-//             e.preventDefault();
-//         }
-//     });
-// }
-
-// const editForm = document.getElementById('editUserForm');
-// if (editForm) {
-//     editForm.addEventListener('submit', function(e) {
-//         if (!validatePassword('editUserForm')) {
-//             e.preventDefault();
-//         }
-//     });
-// }
-
-// // Inisialisasi saat dokumen siap
-// document.addEventListener('DOMContentLoaded', function() {
-//     console.log('Document ready, modal functions loaded');
-// });
-
-
-
-document.addEventListener('DOMContentLoaded', function() {
-
-    // Fungsi global untuk fetch data dan buka modal
     window.openEditModal = async function(userId) {
         try {
             const response = await fetch(`/admin/users/${userId}/data`);
@@ -238,7 +82,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (result.success) {
                 const user = result.data;
 
-                // Isi form
                 const form = document.getElementById('editUserForm');
                 form.action = `/admin/users/${user.id}`;
 
@@ -263,20 +106,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('edit_tanggal_lahir').value = '';
                     }
 
-                    // document.getElementById('edit_tanggal_lahir').value = cm.tanggal_lahir;
                     document.getElementById('edit_alamat').value = cm.alamat;
                     document.getElementById('edit_no_telepon').value = cm.no_telepon;
                     document.getElementById('edit_asal_sekolah').value = cm.asal_sekolah;
                 } else {
-                    // reset
                     ['edit_calon_mahasiswa_id','edit_program_studi','edit_jenis_kelamin','edit_tanggal_lahir','edit_alamat','edit_no_telepon','edit_asal_sekolah']
                     .forEach(id => document.getElementById(id).value = '');
                 }
 
-                // Toggle fields
                 toggleEditCalonMahasiswaFields();
 
-                // Show modal
                 new bootstrap.Modal(document.getElementById('editUserModal')).show();
             } else {
                 alert('User tidak ditemukan!');
@@ -287,7 +126,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Toggle calon mahasiswa fields
     function toggleEditCalonMahasiswaFields() {
         const role = document.getElementById('edit_role').value;
         const fields = document.getElementById('editCalonMahasiswaFields');
@@ -301,11 +139,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Event listener role select
     const editRoleSelect = document.getElementById('edit_role');
     if(editRoleSelect) editRoleSelect.addEventListener('change', toggleEditCalonMahasiswaFields);
 
-    // Reset modal edit
     const editModalElement = document.getElementById('editUserModal');
     if(editModalElement) editModalElement.addEventListener('hidden.bs.modal', function() {
         document.getElementById('editUserForm').reset();

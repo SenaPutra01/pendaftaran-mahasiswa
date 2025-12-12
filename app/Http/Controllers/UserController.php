@@ -23,7 +23,7 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-        // Validation rules
+
         $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
@@ -37,11 +37,9 @@ class UserController extends Controller
             'asal_sekolah' => 'required_if:role,mahasiswa|string|max:100',
         ];
 
-        // dd($request->role);
-        // Custom error messages
-        $messages = [
-            // ... custom messages
-        ];
+
+
+        $messages = [];
 
         $validator = Validator::make($request->all(), $rules, $messages);
 
@@ -55,7 +53,7 @@ class UserController extends Controller
         try {
             DB::beginTransaction();
 
-            // Create user
+
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
@@ -63,7 +61,7 @@ class UserController extends Controller
                 'role' => $request->role,
             ]);
 
-            // Jika role calon mahasiswa, buat data calon mahasiswa
+
             if ($request->role == 'mahasiswa') {
                 CalonMahasiswa::create([
                     'user_id' => $user->id,
@@ -99,7 +97,7 @@ class UserController extends Controller
                 'message' => 'User tidak ditemukan.'
             ], 404);
         }
-        // dd($user);
+
         return response()->json([
             'success' => true,
             'data' => $user
@@ -110,7 +108,7 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
 
-        // Validation rules
+
         $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
@@ -136,7 +134,7 @@ class UserController extends Controller
         try {
             DB::beginTransaction();
 
-            // Update user
+
             $userData = [
                 'name' => $request->name,
                 'email' => $request->email,
@@ -149,7 +147,7 @@ class UserController extends Controller
 
             $user->update($userData);
 
-            // Handle calon mahasiswa data
+
             if ($request->role == 'mahasiswa') {
                 $calonMahasiswaData = [
                     'nama_lengkap' => $request->name,
@@ -168,7 +166,7 @@ class UserController extends Controller
                     CalonMahasiswa::create($calonMahasiswaData);
                 }
             } else {
-                // Jika role diubah dari calon_mahasiswa ke administrator, hapus data calon mahasiswa
+
                 if ($user->calonMahasiswa) {
                     $user->calonMahasiswa->delete();
                 }
@@ -193,12 +191,12 @@ class UserController extends Controller
         try {
             DB::beginTransaction();
 
-            // Hapus data calon mahasiswa terkait jika ada
+
             if ($user->calonMahasiswa) {
                 $user->calonMahasiswa->delete();
             }
 
-            // Hapus user
+
             $user->delete();
 
             DB::commit();

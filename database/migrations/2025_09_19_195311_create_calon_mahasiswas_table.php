@@ -20,7 +20,6 @@ return new class extends Migration
             $table->string('foto')->nullable();
             $table->string('kode_program_studi', 10)->nullable();
 
-            // Field tambahan untuk data diri lengkap
             $table->string('nik', 16)->nullable();
             $table->string('tempat_lahir', 50)->nullable();
             $table->string('agama', 20)->nullable();

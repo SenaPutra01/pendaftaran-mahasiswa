@@ -16,7 +16,6 @@ class IsAdministrator
 
         $user = Auth::user();
 
-        // Check langsung tanpa method
         if ($user->role === 'administrator') {
             return $next($request);
         }

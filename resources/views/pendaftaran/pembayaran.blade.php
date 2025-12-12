@@ -102,7 +102,6 @@
 <script>
     const snapToken = '{{ $snapToken }}';
 
-// Embed Snap.js
 window.snap.pay(snapToken, {
     onSuccess: function(result) {
         console.log('Payment success:', result);
@@ -121,7 +120,6 @@ window.snap.pay(snapToken, {
     }
 });
 
-// Refresh button handler
 document.getElementById('refresh-btn').addEventListener('click', function() {
     if (confirm('Refresh payment gateway? Token yang lama akan expired.')) {
         fetch('{{ route("pendaftaran.refresh-token") }}')

@@ -109,7 +109,6 @@ document.getElementById('kode_program_studi').addEventListener('change', functio
     }
 });
 
-// Trigger change event jika sudah ada nilai selected
 const selectedValue = document.getElementById('kode_program_studi').value;
 if (selectedValue) {
     document.getElementById('kode_program_studi').dispatchEvent(new Event('change'));

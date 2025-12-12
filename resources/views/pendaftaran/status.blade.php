@@ -122,10 +122,17 @@
                     </div>
                     <div class="card-body">
                         <div class="d-grid gap-2">
-                            @if(!$calonMahasiswa->pembayaran || !$calonMahasiswa->pembayaran->is_paid)
+                            {{-- @if(!$calonMahasiswa->pembayaran || !$calonMahasiswa->pembayaran->is_paid)
                             <a href="{{ route('pendaftaran.pembayaran') }}" class="btn btn-primary">
                                 <i class="fas fa-credit-card me-2"></i>Lanjutkan Pembayaran
                             </a>
+                            @endif --}}
+
+                            @if($calonMahasiswa->pembayaran && $calonMahasiswa->pembayaran->is_pending)
+                            <button id="cek-status-btn" class="btn btn-warning"
+                                data-order-id="{{ $calonMahasiswa->pembayaran->order_id }}">
+                                <i class="fas fa-sync-alt me-2"></i>Cek Status Pembayaran
+                            </button>
                             @endif
 
                             @if($calonMahasiswa->pembayaran && $calonMahasiswa->pembayaran->is_paid)
@@ -141,10 +148,114 @@
                                 <i class="fas fa-edit me-2"></i>Edit Data Diri
                             </a>
                         </div>
+
+                        {{-- Container untuk status loading dan pesan --}}
+                        <div id="status-container" class="mt-3" style="display: none;">
+                            <div class="d-flex align-items-center">
+                                <div class="spinner-border spinner-border-sm text-primary me-2" role="status"
+                                    id="loading-spinner">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <span id="status-message" class="small"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const cekStatusBtn = document.getElementById('cek-status-btn');
+    const statusContainer = document.getElementById('status-container');
+    const statusMessage = document.getElementById('status-message');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    
+    if (cekStatusBtn) {
+        cekStatusBtn.addEventListener('click', function() {
+            const orderId = this.getAttribute('data-order-id');
+            cekStatusPembayaran(orderId);
+        });
+    }
+    
+    function cekStatusPembayaran(orderId) {
+        statusContainer.style.display = 'block';
+        loadingSpinner.style.display = 'inline-block';
+        statusMessage.textContent = 'Memeriksa status pembayaran...';
+        statusMessage.className = 'small text-primary';
+        
+        cekStatusBtn.disabled = true;
+        cekStatusBtn.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Memeriksa...';
+        
+        fetch(`/debug/sync/${orderId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            loadingSpinner.style.display = 'none';
+            
+            if (data.success) {
+                statusMessage.textContent = 'Status berhasil diperbarui! Halaman akan direfresh...';
+                statusMessage.className = 'small text-success';
+                
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                statusMessage.textContent = data.message || 'Terjadi kesalahan';
+                statusMessage.className = 'small text-danger';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            loadingSpinner.style.display = 'none';
+            statusMessage.textContent = 'Gagal memeriksa status. Silakan coba lagi.';
+            statusMessage.className = 'small text-danger';
+        })
+        .finally(() => {
+            setTimeout(() => {
+                if (cekStatusBtn) {
+                    cekStatusBtn.disabled = false;
+                    cekStatusBtn.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Cek Status Pembayaran';
+                }
+            }, 3000);
+        });
+    }
+});
+</script>
+
+<style>
+    #cek-status-btn:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+    }
+
+    .status-badge {
+        font-size: 0.85em;
+        padding: 0.4em 0.8em;
+    }
+
+    #status-container {
+        transition: all 0.3s ease;
+    }
+
+    .spinner-border {
+        width: 1rem;
+        height: 1rem;
+    }
+</style>
 @endsection

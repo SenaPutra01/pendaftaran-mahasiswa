@@ -13,11 +13,11 @@ class UserSeeder extends Seeder
 {
     public function run()
     {
-        // Hapus data existing dengan cara yang aman untuk PostgreSQL
+
         DB::table('calon_mahasiswa')->delete();
         DB::table('users')->delete();
 
-        // 1. Buat user Administrator
+
         $admin = User::create([
             'name' => 'Administrator',
             'email' => 'admin@universitas.ac.id',
@@ -28,7 +28,7 @@ class UserSeeder extends Seeder
 
         $this->command->info('User Administrator created: admin@universitas.ac.id / password123');
 
-        // 2. Buat user Staff Administrasi
+
         $staff = User::create([
             'name' => 'Staff Administrasi',
             'email' => 'staff@universitas.ac.id',
@@ -39,7 +39,7 @@ class UserSeeder extends Seeder
 
         $this->command->info('User Staff created: staff@universitas.ac.id / password123');
 
-        // 3. Buat beberapa calon mahasiswa contoh
+
         $programStudi = ProgramStudi::all();
 
         if ($programStudi->count() > 0) {
@@ -52,7 +52,7 @@ class UserSeeder extends Seeder
                     'alamat' => 'Jl. Merdeka No. 123, Jakarta',
                     'no_telepon' => '081234567891',
                     'asal_sekolah' => 'SMA Negeri 1 Jakarta',
-                    'program_studi' => 'TI' // Teknik Informatika
+                    'program_studi' => 'TI'
                 ],
                 [
                     'name' => 'Siti Rahayu',
@@ -62,7 +62,7 @@ class UserSeeder extends Seeder
                     'alamat' => 'Jl. Sudirman No. 45, Bandung',
                     'no_telepon' => '081234567892',
                     'asal_sekolah' => 'SMA Negeri 2 Bandung',
-                    'program_studi' => 'SI' // Sistem Informasi
+                    'program_studi' => 'SI'
                 ],
                 [
                     'name' => 'Budi Santoso',
@@ -72,7 +72,7 @@ class UserSeeder extends Seeder
                     'alamat' => 'Jl. Gajah Mada No. 67, Surabaya',
                     'no_telepon' => '081234567893',
                     'asal_sekolah' => 'SMA Negeri 3 Surabaya',
-                    'program_studi' => 'MNJ' // Manajemen
+                    'program_studi' => 'MNJ'
                 ],
                 [
                     'name' => 'Dewi Lestari',
@@ -82,7 +82,7 @@ class UserSeeder extends Seeder
                     'alamat' => 'Jl. Diponegoro No. 89, Yogyakarta',
                     'no_telepon' => '081234567894',
                     'asal_sekolah' => 'SMA Negeri 4 Yogyakarta',
-                    'program_studi' => 'AKT' // Akuntansi
+                    'program_studi' => 'AKT'
                 ],
                 [
                     'name' => 'Rudi Hermawan',
@@ -92,16 +92,16 @@ class UserSeeder extends Seeder
                     'alamat' => 'Jl. Thamrin No. 34, Medan',
                     'no_telepon' => '081234567895',
                     'asal_sekolah' => 'SMA Negeri 5 Medan',
-                    'program_studi' => 'HKM' // Ilmu Hukum
+                    'program_studi' => 'HKM'
                 ]
             ];
 
             foreach ($calonMahasiswaData as $data) {
-                // Cari program studi berdasarkan kode
+
                 $prodi = $programStudi->firstWhere('kode_program_studi', $data['program_studi']);
 
                 if ($prodi) {
-                    // Buat user calon mahasiswa
+
                     $user = User::create([
                         'name' => $data['name'],
                         'email' => $data['email'],
@@ -110,7 +110,7 @@ class UserSeeder extends Seeder
                         'email_verified_at' => now(),
                     ]);
 
-                    // Buat data calon mahasiswa
+
                     CalonMahasiswa::create([
                         'user_id' => $user->id,
                         'nama_lengkap' => $data['name'],
@@ -127,7 +127,7 @@ class UserSeeder extends Seeder
             }
         }
 
-        // 4. Buat user calon mahasiswa tambahan (3 user saja untuk testing)
+
         for ($i = 1; $i <= 3; $i++) {
             $prodi = $programStudi->random();
 

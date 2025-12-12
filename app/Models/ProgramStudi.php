@@ -9,7 +9,7 @@ class ProgramStudi extends Model
 {
     use HasFactory;
 
-    protected $table = 'program_studi'; // Nama tabel eksplisit
+    protected $table = 'program_studi';
     protected $primaryKey = 'kode_program_studi';
     public $incrementing = false;
     protected $keyType = 'string';
@@ -37,19 +37,19 @@ class ProgramStudi extends Model
         return $this->hasMany(CalonMahasiswa::class, 'kode_program_studi', 'kode_program_studi');
     }
 
-    // Scope untuk filter berdasarkan fakultas
+
     public function scopeByFakultas($query, $kodeFakultas)
     {
         return $query->where('kode_fakultas', $kodeFakultas);
     }
 
-    // Scope untuk filter berdasarkan jenjang
+
     public function scopeByJenjang($query, $jenjang)
     {
         return $query->where('jenjang', $jenjang);
     }
 
-    // Accessor untuk nama lengkap (jenjang + nama)
+
     public function getNamaLengkapAttribute()
     {
         return $this->jenjang . ' ' . $this->nama_program_studi;

@@ -121,7 +121,6 @@ async function openEditModal(kodeProgramStudi) {
         if (result.success) {
             const prodi = result.data;
             
-            // Isi form dengan data program studi
             document.getElementById('editProgramStudiForm').action = `/admin/program-studi/${prodi.kode_program_studi}`;
             document.getElementById('edit_kode_program_studi').value = prodi.kode_program_studi;
             document.getElementById('edit_nama_program_studi').value = prodi.nama_program_studi;
@@ -131,7 +130,6 @@ async function openEditModal(kodeProgramStudi) {
             document.getElementById('edit_deskripsi').value = prodi.deskripsi || '';
             document.getElementById('edit_status').value = prodi.status || 'active';
             
-            // Tampilkan modal
             const editModal = new bootstrap.Modal(document.getElementById('editProgramStudiModal'));
             editModal.show();
         } else {
@@ -143,17 +141,14 @@ async function openEditModal(kodeProgramStudi) {
     }
 }
 
-// Reset form ketika modal create ditutup
 document.getElementById('createProgramStudiModal').addEventListener('hidden.bs.modal', function() {
     document.getElementById('createProgramStudiForm').reset();
 });
 
-// Reset form ketika modal edit ditutup
 document.getElementById('editProgramStudiModal').addEventListener('hidden.bs.modal', function() {
     document.getElementById('editProgramStudiForm').reset();
 });
 
-// Format input biaya pendaftaran
 document.getElementById('create_biaya_pendaftaran').addEventListener('input', function(e) {
     this.value = this.value.replace(/[^0-9]/g, '');
 });

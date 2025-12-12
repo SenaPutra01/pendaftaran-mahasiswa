@@ -201,7 +201,7 @@ class ProgramStudiController extends Controller
     {
         $programStudi = ProgramStudi::findOrFail($kode_program_studi);
 
-        // Cek apakah program studi memiliki calon mahasiswa
+
         if ($programStudi->calonMahasiswa()->count() > 0) {
             return redirect()->back()
                 ->with('error', 'Tidak dapat menghapus program studi karena masih memiliki calon mahasiswa.');

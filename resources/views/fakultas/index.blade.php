@@ -171,7 +171,6 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
 
-    // Fungsi buka modal edit Fakultas
     window.openEditFakultasModal = async function(kodeFakultas) {
         try {
             const response = await fetch(`/admin/api/fakultas/${kodeFakultas}`, {
@@ -187,7 +186,6 @@
                 document.getElementById('edit_kode_fakultas').value = fak.kode_fakultas;
                 document.getElementById('edit_nama_fakultas').value = fak.nama_fakultas;
 
-                // Tampilkan modal
                 new bootstrap.Modal(document.getElementById('editFakultasModal')).show();
             } else {
                 alert('Data Fakultas tidak ditemukan!');
@@ -198,7 +196,6 @@
         }
     }
 
-    // DataTables
     $('#fakultasTable').DataTable({
         responsive: true,
         autoWidth: false,

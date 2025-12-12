@@ -15,16 +15,16 @@ class DashboardController extends Controller
      */
     public function adminDashboard()
     {
-        // Statistik utama
+
         $totalCalon = CalonMahasiswa::count();
         $totalProdi = ProgramStudi::count();
 
-        // Statistik pembayaran
+
         $totalPembayaran = Pembayaran::count();
         $pembayaranPending = Pembayaran::where('status', 'pending')->count();
         $pembayaranVerified = Pembayaran::where('status', 'settlement')->count();
 
-        // Data terbaru
+
         $calonTerbaru = CalonMahasiswa::with('programStudi')
             ->orderBy('created_at', 'desc')
             ->take(8)

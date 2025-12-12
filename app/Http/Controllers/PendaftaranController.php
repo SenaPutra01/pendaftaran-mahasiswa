@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Midtrans\Config;
 use Midtrans\Snap;
+use Midtrans\Notification;
+use Midtrans\Transaction;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -21,13 +23,11 @@ class PendaftaranController extends Controller
 {
     public function __construct()
     {
-        // Konfigurasi Midtrans dengan error handling
         $serverKey = config('midtrans.server_key');
         $clientKey = config('midtrans.client_key');
 
         if (empty($serverKey) || empty($clientKey)) {
             Log::error('Midtrans configuration missing: serverKey or clientKey is empty');
-            // Tidak throw exception di constructor, biarkan method handle sendiri
         }
 
         Config::$serverKey = $serverKey;
@@ -75,7 +75,6 @@ class PendaftaranController extends Controller
         try {
             DB::beginTransaction();
 
-            // Buat user baru
             $user = User::create([
                 'name' => $request->nama_lengkap,
                 'email' => $request->email,
@@ -84,7 +83,6 @@ class PendaftaranController extends Controller
                 'email_verified_at' => now(),
             ]);
 
-            // Buat data calon mahasiswa dasar
             CalonMahasiswa::create([
                 'user_id' => $user->id,
                 'nama_lengkap' => $request->nama_lengkap,
@@ -93,7 +91,6 @@ class PendaftaranController extends Controller
 
             DB::commit();
 
-            // Login otomatis
             Auth::login($user);
 
             return redirect()->route('pendaftaran.data-diri')
@@ -161,7 +158,6 @@ class PendaftaranController extends Controller
         try {
             $calonMahasiswa = CalonMahasiswa::where('user_id', Auth::id())->firstOrFail();
 
-            // Handle upload foto
             $fotoPath = $calonMahasiswa->foto;
             if ($request->hasFile('foto')) {
                 if ($calonMahasiswa->foto) {
@@ -177,7 +173,6 @@ class PendaftaranController extends Controller
                 $fotoPath = '/storage/' . $fotoPath;
             }
 
-            // Update data - HANYA field yang ada di database
             $calonMahasiswa->update([
                 'nik' => $request->nik,
                 'jenis_kelamin' => $request->jenis_kelamin,
@@ -246,7 +241,6 @@ class PendaftaranController extends Controller
         try {
             $calonMahasiswa = CalonMahasiswa::where('user_id', Auth::id())->firstOrFail();
 
-            // Pastikan kode_program_studi ada di database
             $programStudi = ProgramStudi::where('kode_program_studi', $request->kode_program_studi)->first();
 
             if (!$programStudi) {
@@ -283,26 +277,22 @@ class PendaftaranController extends Controller
                 ->with(['programStudi.fakultas', 'pembayaran'])
                 ->firstOrFail();
 
-            // Cek apakah data sudah lengkap
             if (!$calonMahasiswa->is_data_lengkap) {
                 return redirect()->route('pendaftaran.data-diri')
                     ->with('error', 'Silakan lengkapi data diri terlebih dahulu.');
             }
 
-            // Cek apakah sudah ada pembayaran yang berhasil
             if ($calonMahasiswa->sudah_bayar) {
                 return redirect()->route('pendaftaran.status')
                     ->with('info', 'Anda sudah melakukan pembayaran.');
             }
 
-            // Cek apakah ada pembayaran pending
             $pembayaranPending = $calonMahasiswa->pembayaran;
             $snapToken = null;
 
             if ($pembayaranPending && $pembayaranPending->is_pending && !$pembayaranPending->is_expired) {
                 $snapToken = $pembayaranPending->snap_token;
             } else {
-                // Buat pembayaran baru
                 $snapToken = $this->generatePembayaran($calonMahasiswa);
             }
 
@@ -322,25 +312,27 @@ class PendaftaranController extends Controller
         try {
             DB::beginTransaction();
 
-            // Hapus pembayaran lama yang expired
+            if (!$calonMahasiswa->bisaBuatPembayaranBaru()) {
+                throw new \Exception('Tidak dapat membuat pembayaran baru. ' .
+                    'Pastikan data sudah lengkap dan tidak ada pembayaran aktif.');
+            }
+
             Pembayaran::where('calon_mahasiswa_id', $calonMahasiswa->id)
-                ->where('status', 'pending')
+                ->where('status', Pembayaran::STATUS_PENDING)
+                ->where('waktu_kadaluarsa', '<', now())
                 ->delete();
 
-            // Generate order ID
             $orderId = 'REG-' . $calonMahasiswa->id . '-' . time();
-            $jumlah = 250000; // Rp 250.000
-            $waktuKadaluarsa = now()->addHours(24); // Kadaluarsa 24 jam
+            $jumlah = 250000;
+            $waktuKadaluarsa = now()->addHours(24);
 
-            // Generate snap token
             $snapToken = $this->generateSnapToken($calonMahasiswa, $orderId, $jumlah);
 
-            // Simpan data pembayaran
             $pembayaran = Pembayaran::create([
                 'calon_mahasiswa_id' => $calonMahasiswa->id,
                 'order_id' => $orderId,
                 'jumlah' => $jumlah,
-                'status' => 'pending',
+                'status' => Pembayaran::STATUS_PENDING,
                 'snap_token' => $snapToken,
                 'waktu_kadaluarsa' => $waktuKadaluarsa,
                 'metadata' => ['created_at' => now()->toDateTimeString()]
@@ -366,7 +358,6 @@ class PendaftaranController extends Controller
      */
     private function generateSnapToken($calonMahasiswa, $orderId, $jumlah)
     {
-        // Validasi konfigurasi Midtrans
         if (empty(Config::$serverKey)) {
             throw new \Exception('Midtrans serverKey is not configured. Please set MIDTRANS_SERVER_KEY in your .env file.');
         }
@@ -411,90 +402,79 @@ class PendaftaranController extends Controller
     }
 
     /**
-     * Handle callback dari Midtrans
+     * Handle callback dari Midtrans (frontend redirect)
      */
     public function handlePaymentCallback(Request $request)
     {
+        Log::info('=== MIDTRANS CALLBACK START ===');
+        Log::info('Callback Data:', $request->all());
+
         try {
-            $serverKey = config('services.midtrans.serverKey');
+            $orderId = $request->order_id;
 
-            if (empty($serverKey)) {
-                Log::error('Midtrans serverKey not configured in callback');
-                return response()->json(['status' => 'error', 'message' => 'Server configuration error'], 500);
+            if (!$orderId) {
+                Log::error('No order_id in callback request');
+                return redirect()->route('pendaftaran.status')
+                    ->with('error', 'Data callback tidak valid.');
             }
 
-            // Verifikasi signature
-            $hashed = hash(
-                "sha512",
-                $request->order_id .
-                    $request->status_code .
-                    $request->gross_amount .
-                    $serverKey
-            );
-
-            if ($hashed !== $request->signature_key) {
-                Log::error('Invalid signature key', [
-                    'received' => $request->signature_key,
-                    'calculated' => $hashed,
-                    'order_id' => $request->order_id
-                ]);
-                return response()->json(['status' => 'error', 'message' => 'Invalid signature'], 400);
-            }
-
-            $pembayaran = Pembayaran::where('order_id', $request->order_id)->first();
+            $pembayaran = Pembayaran::where('order_id', $orderId)->first();
 
             if (!$pembayaran) {
-                Log::error('Pembayaran not found', ['order_id' => $request->order_id]);
-                return response()->json(['status' => 'error', 'message' => 'Order not found'], 404);
+                Log::error('Pembayaran not found', ['order_id' => $orderId]);
+                return redirect()->route('pendaftaran.status')
+                    ->with('error', 'Transaksi tidak ditemukan.');
             }
 
-            $status = strtolower($request->transaction_status);
-            $fraudStatus = $request->fraud_status ?? '';
+            if ($request->has('transaction_status')) {
+                $status = strtolower($request->transaction_status);
 
-            Log::info('Payment callback received', [
-                'order_id' => $request->order_id,
-                'status' => $status,
-                'fraud_status' => $fraudStatus
-            ]);
+                $statusMapping = [
+                    'capture' => Pembayaran::STATUS_CAPTURE,
+                    'settlement' => Pembayaran::STATUS_SETTLEMENT,
+                    'pending' => Pembayaran::STATUS_PENDING,
+                    'deny' => Pembayaran::STATUS_DENY,
+                    'expire' => Pembayaran::STATUS_EXPIRE,
+                    'cancel' => Pembayaran::STATUS_CANCEL,
+                    'refund' => Pembayaran::STATUS_REFUND
+                ];
 
-            // Update status pembayaran
-            $updateData = [
-                'payment_type' => $request->payment_type,
-                'metadata' => $request->all()
-            ];
+                $newStatus = $statusMapping[$status] ?? Pembayaran::STATUS_PENDING;
 
-            if ($status === 'capture') {
-                if ($fraudStatus === 'accept') {
-                    $updateData['status'] = 'capture';
-                } else {
-                    $updateData['status'] = 'deny';
+                $updateData = [
+                    'status' => $newStatus,
+                    'payment_type' => $request->payment_type ?? null,
+                    'metadata' => array_merge(
+                        $pembayaran->metadata ?? [],
+                        ['callback_data' => $request->all()]
+                    )
+                ];
+
+                $pembayaran->update($updateData);
+
+                if (in_array($newStatus, Pembayaran::getSuccessfulStatuses())) {
+                    $pembayaran->calonMahasiswa()->update([
+                        'status_verifikasi' => 'menunggu_verifikasi',
+                    ]);
+
+                    Log::info('Calon mahasiswa updated from callback', [
+                        'order_id' => $orderId,
+                        'status' => $newStatus
+                    ]);
                 }
-            } elseif ($status === 'settlement') {
-                $updateData['status'] = 'settlement';
-            } elseif (in_array($status, ['pending', 'deny', 'expire', 'cancel'])) {
-                $updateData['status'] = $status;
-            }
 
-            $pembayaran->update($updateData);
-
-            // Jika pembayaran sukses, update status calon mahasiswa
-            if (in_array($pembayaran->status, ['settlement', 'capture'])) {
-                $pembayaran->calonMahasiswa->update([
-                    'status_verifikasi' => 'menunggu_verifikasi',
-                ]);
-
-                Log::info('Payment successful, calon mahasiswa updated', [
-                    'calon_mahasiswa_id' => $pembayaran->calon_mahasiswa_id,
-                    'status' => $pembayaran->status
+                Log::info('Payment updated from callback', [
+                    'order_id' => $orderId,
+                    'status' => $newStatus
                 ]);
             }
 
-            return response()->json(['status' => 'success']);
+            return redirect()->route('pendaftaran.status')
+                ->with('info', 'Status pembayaran akan diperbarui otomatis.');
         } catch (\Exception $e) {
-            Log::error('Error in payment callback: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            Log::error('Error in payment callback: ' . $e->getMessage());
+            return redirect()->route('pendaftaran.status')
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
@@ -503,62 +483,202 @@ class PendaftaranController extends Controller
      */
     public function handleWebhook(Request $request)
     {
-        Log::info('Midtrans webhook received', $request->all());
-
         try {
             $notification = $request->all();
+
+            if (empty($notification['order_id']) || empty($notification['transaction_status'])) {
+                Log::error('Invalid webhook data', $notification);
+                return response()->json(['status' => 'error', 'message' => 'Invalid data'], 400);
+            }
+
             $orderId = $notification['order_id'];
-            $status = $notification['transaction_status'];
-            $fraudStatus = $notification['fraud_status'] ?? '';
+            $transactionStatus = $notification['transaction_status'];
+            $fraudStatus = $notification['fraud_status'] ?? null;
+
+            Log::info('Processing webhook', [
+                'order_id' => $orderId,
+                'transaction_status' => $transactionStatus,
+                'fraud_status' => $fraudStatus
+            ]);
 
             $pembayaran = Pembayaran::where('order_id', $orderId)->first();
 
             if (!$pembayaran) {
-                Log::error('Webhook: Order not found', ['order_id' => $orderId]);
-                return response()->json(['status' => 'error', 'message' => 'Order not found'], 404);
+                Log::error('Payment not found', ['order_id' => $orderId]);
+                return response()->json(['status' => 'error', 'message' => 'Payment not found'], 404);
             }
 
-            // Handle status pembayaran
-            $updateData = [
-                'payment_type' => $notification['payment_type'] ?? null,
-                'metadata' => $notification
+            Log::info('Found payment', [
+                'current_status' => $pembayaran->status,
+                'calon_mahasiswa_id' => $pembayaran->calon_mahasiswa_id
+            ]);
+
+            $statusMapping = [
+                'capture' => Pembayaran::STATUS_CAPTURE,
+                'settlement' => Pembayaran::STATUS_SETTLEMENT,
+                'pending' => Pembayaran::STATUS_PENDING,
+                'deny' => Pembayaran::STATUS_DENY,
+                'expire' => Pembayaran::STATUS_EXPIRE,
+                'cancel' => Pembayaran::STATUS_CANCEL,
+                'refund' => Pembayaran::STATUS_REFUND
             ];
 
-            if ($status == 'capture') {
-                if ($fraudStatus == 'accept') {
-                    $updateData['status'] = 'capture';
-                } else {
-                    $updateData['status'] = 'deny';
+            $newStatus = $statusMapping[$transactionStatus] ?? Pembayaran::STATUS_PENDING;
+
+            if ($transactionStatus === 'capture' && $fraudStatus === 'challenge') {
+                $newStatus = Pembayaran::STATUS_PENDING;
+                Log::info('Payment challenged by fraud system');
+            }
+
+            $pembayaran->update([
+                'status' => $newStatus,
+                'payment_type' => $notification['payment_type'] ?? null,
+                'metadata' => array_merge(
+                    $pembayaran->metadata ?? [],
+                    [
+                        'webhook_received_at' => now()->toISOString(),
+                        'webhook_data' => $notification
+                    ]
+                )
+            ]);
+
+            Log::info('Payment updated', [
+                'order_id' => $orderId,
+                'old_status' => $pembayaran->getOriginal('status'),
+                'new_status' => $newStatus
+            ]);
+
+            if (in_array($newStatus, Pembayaran::getSuccessfulStatuses())) {
+                $calonMahasiswa = $pembayaran->calonMahasiswa;
+                if ($calonMahasiswa) {
+                    $calonMahasiswa->update([
+                        'status_verifikasi' => 'menunggu_verifikasi',
+                    ]);
+
+                    Log::info('Calon mahasiswa updated', [
+                        'calon_mahasiswa_id' => $calonMahasiswa->id,
+                        'status_verifikasi' => 'menunggu_verifikasi'
+                    ]);
                 }
-            } else if ($status == 'settlement') {
-                $updateData['status'] = 'settlement';
-            } else if (in_array($status, ['pending', 'deny', 'expire', 'cancel', 'refund'])) {
-                $updateData['status'] = $status;
             }
 
-            $pembayaran->update($updateData);
-
-            // Jika pembayaran sukses, update status calon mahasiswa
-            if (in_array($pembayaran->status, ['settlement', 'capture'])) {
-                $pembayaran->calonMahasiswa->update([
-                    'status_verifikasi' => 'menunggu_verifikasi',
-                ]);
-
-                Log::info('Webhook: Payment successful', [
-                    'order_id' => $orderId,
-                    'calon_mahasiswa_id' => $pembayaran->calon_mahasiswa_id
-                ]);
-            }
-
-            return response()->json(['status' => 'success']);
+            return response()->json(['status' => 'success', 'message' => 'Webhook processed']);
         } catch (\Exception $e) {
             Log::error('Webhook error: ' . $e->getMessage(), [
-                'notification' => $request->all()
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
             ]);
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
 
+    public function syncPaymentStatus($orderId)
+    {
+        try {
+            $pembayaran = Pembayaran::where('order_id', $orderId)->firstOrFail();
+
+            Log::info('Manual sync started', [
+                'order_id' => $orderId,
+                'current_status' => $pembayaran->status
+            ]);
+
+            /** @var \stdClass $status */
+            $status = Transaction::status($orderId);
+
+            if (is_array($status)) {
+                $status = (object) $status;
+            }
+
+            $getStatusProperty = function ($key) use ($status) {
+                if (is_object($status)) {
+                    return $status->$key ?? null;
+                }
+                if (is_array($status)) {
+                    return $status[$key] ?? null;
+                }
+                return null;
+            };
+
+            Log::info('Midtrans API response:', [
+                'order_id' => $orderId,
+                'transaction_status' => $getStatusProperty('transaction_status'),
+                'fraud_status' => $getStatusProperty('fraud_status')
+            ]);
+
+            $statusMapping = [
+                'capture' => Pembayaran::STATUS_CAPTURE,
+                'settlement' => Pembayaran::STATUS_SETTLEMENT,
+                'pending' => Pembayaran::STATUS_PENDING,
+                'deny' => Pembayaran::STATUS_DENY,
+                'expire' => Pembayaran::STATUS_EXPIRE,
+                'cancel' => Pembayaran::STATUS_CANCEL,
+                'refund' => Pembayaran::STATUS_REFUND
+            ];
+
+            $midtransStatus = $getStatusProperty('transaction_status');
+            $newStatus = $statusMapping[$midtransStatus] ?? Pembayaran::STATUS_PENDING;
+
+            if ($midtransStatus === 'capture' && $getStatusProperty('fraud_status') === 'challenge') {
+                $newStatus = Pembayaran::STATUS_PENDING;
+            }
+
+            if ($pembayaran->status !== $newStatus) {
+                $updateData = [
+                    'status' => $newStatus,
+                    'payment_type' => $getStatusProperty('payment_type'),
+                    'metadata' => array_merge(
+                        $pembayaran->metadata ?? [],
+                        [
+                            'manual_sync_at' => now()->toDateTimeString(),
+                            'midtrans_status_data' => is_object($status)
+                                ? json_decode(json_encode($status), true)
+                                : $status
+                        ]
+                    )
+                ];
+
+                $pembayaran->update($updateData);
+
+                if (in_array($newStatus, Pembayaran::getSuccessfulStatuses())) {
+                    $pembayaran->calonMahasiswa()->update([
+                        'status_verifikasi' => 'menunggu_verifikasi',
+                    ]);
+                }
+
+                Log::info('Manual sync successful', [
+                    'order_id' => $orderId,
+                    'old_status' => $pembayaran->getOriginal('status'),
+                    'new_status' => $newStatus
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Status updated',
+                    'old_status' => $pembayaran->getOriginal('status'),
+                    'new_status' => $newStatus,
+                    'midtrans_status' => $midtransStatus
+                ]);
+            }
+
+            Log::info('No update needed', [
+                'order_id' => $orderId,
+                'status' => $pembayaran->status
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'No update needed',
+                'current_status' => $pembayaran->status,
+                'midtrans_status' => $midtransStatus
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Sync payment error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
     /**
      * Menampilkan status pendaftaran
      */
@@ -593,18 +713,26 @@ class PendaftaranController extends Controller
                 ->with('pembayaran')
                 ->firstOrFail();
 
-            // Hapus pembayaran lama yang expired
-            if ($calonMahasiswa->pembayaran) {
+            if ($calonMahasiswa->pembayaran && $calonMahasiswa->pembayaran->is_expired) {
                 $calonMahasiswa->pembayaran->delete();
+            } else if ($calonMahasiswa->pembayaran && !$calonMahasiswa->pembayaran->is_expired) {
+                return response()->json([
+                    'error' => 'Masih ada pembayaran aktif yang belum expired'
+                ], 400);
             }
 
-            // Generate pembayaran baru
             $snapToken = $this->generatePembayaran($calonMahasiswa);
 
-            return response()->json(['snap_token' => $snapToken]);
+            return response()->json([
+                'success' => true,
+                'snap_token' => $snapToken
+            ]);
         } catch (\Exception $e) {
             Log::error('Refresh token error: ' . $e->getMessage());
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -620,7 +748,13 @@ class PendaftaranController extends Controller
         try {
             $calonMahasiswa = CalonMahasiswa::where('user_id', Auth::id())->firstOrFail();
 
-            // Buat record pembayaran manual
+            if ($calonMahasiswa->memiliki_pembayaran_aktif) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Masih ada pembayaran aktif. Silakan selesaikan atau tunggu hingga expired.'
+                ], 400);
+            }
+
             $orderId = 'MANUAL-' . $calonMahasiswa->id . '-' . time();
 
             Pembayaran::create([

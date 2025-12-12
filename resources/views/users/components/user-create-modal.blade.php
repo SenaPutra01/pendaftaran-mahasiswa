@@ -195,14 +195,12 @@
                 mahasiswaFields.style.display = 'block';
             } else {
                 mahasiswaFields.style.display = 'none';
-                // Optional: clear values
                 mahasiswaFields.querySelectorAll('input, select, textarea').forEach(el => el.value = '');
             }
         }
 
         roleSelect.addEventListener('change', toggleMahasiswaFields);
 
-        // Inisialisasi saat load
         toggleMahasiswaFields();
     });
 </script>

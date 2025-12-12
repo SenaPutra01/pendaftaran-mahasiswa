@@ -261,12 +261,10 @@
     }
 }
 
-// Validasi NIK
 document.getElementById('nik').addEventListener('input', function(e) {
     this.value = this.value.replace(/\D/g, '').slice(0, 16);
 });
 
-// Validasi nomor telepon
 document.getElementById('no_telepon').addEventListener('input', function(e) {
     this.value = this.value.replace(/\D/g, '').slice(0, 15);
 });

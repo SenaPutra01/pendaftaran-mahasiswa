@@ -224,51 +224,6 @@
 @section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Pastikan fungsi-fungsi ini didefinisikan di scope global
-    // window.openDetailModal = async function(id) {
-    //     try {
-    //         const res = await fetch(`/admin/calon-mahasiswa/${id}/data`);
-    //         const r = await res.json();
-            
-    //         if(r.success) {
-    //             const c = r.data;
-    //             document.getElementById('detail_nama').innerText = c.nama_lengkap;
-    //             document.getElementById('detail_email').innerText = c.user?.email ?? '-';
-    //             document.getElementById('detail_prodi').innerText = c.program_studi?.nama_program_studi ?? '-';
-    //             document.getElementById('detail_asal').innerText = c.asal_sekolah;
-    //             document.getElementById('detail_tanggal').innerText = new Date(c.created_at).toLocaleString();
-                
-    //             // Update status dengan badge yang sesuai
-    //             const statusEl = document.getElementById('detail_status');
-    //             statusEl.innerHTML = ''; // Kosongkan dulu
-                
-    //             let badgeClass = 'badge bg-warning';
-    //             let statusText = 'Belum Terverifikasi';
-                
-    //             if(c.status_verifikasi === 'terverifikasi') {
-    //                 badgeClass = 'badge bg-success';
-    //                 statusText = 'Terverifikasi';
-    //             } else if(c.status_verifikasi === 'ditolak') {
-    //                 badgeClass = 'badge bg-danger';
-    //                 statusText = 'Ditolak';
-    //             }
-                
-    //             const badge = document.createElement('span');
-    //             badge.className = badgeClass;
-    //             badge.innerText = statusText;
-    //             statusEl.appendChild(badge);
-                
-    //             // Tampilkan modal
-    //             const modal = new bootstrap.Modal(document.getElementById('detailCalonModal'));
-    //             modal.show();
-    //         } else {
-    //             alert('Gagal mengambil data calon mahasiswa');
-    //         }
-    //     } catch (error) {
-    //         console.error('Error:', error);
-    //         alert('Terjadi kesalahan saat mengambil data');
-    //     }
-    // }
     window.openDetailModal = async function(id) {
     try {
         const res = await fetch(`/admin/calon-mahasiswa/${id}/data`);
@@ -277,7 +232,6 @@
         if(r.success) {
             const c = r.data;
             
-            // Isi data ke modal
             document.getElementById('detail_nama').innerText = c.nama_lengkap;
             document.getElementById('detail_email').innerText = c.user?.email ?? '-';
             document.getElementById('detail_jenis_kelamin').innerText = c.jenis_kelamin;
@@ -289,7 +243,6 @@
             document.getElementById('detail_asal').innerText = c.asal_sekolah;
             document.getElementById('detail_tanggal').innerText = new Date(c.created_at).toLocaleString('id-ID');
             
-            // Set foto
             const fotoElement = document.getElementById('detail_foto');
             if (c.foto) {
                 fotoElement.src = '/storage/' + c.foto;
@@ -297,9 +250,8 @@
                 fotoElement.src = '/images/default-profile.png';
             }
             
-            // Update status dengan badge yang sesuai
             const statusEl = document.getElementById('detail_status');
-            statusEl.innerHTML = ''; // Kosongkan dulu
+            statusEl.innerHTML = ''; 
             
             let badgeClass = 'badge bg-warning';
             let statusText = 'Belum Terverifikasi';
@@ -317,7 +269,6 @@
             badge.innerText = statusText;
             statusEl.appendChild(badge);
             
-            // Tampilkan modal
             const modal = new bootstrap.Modal(document.getElementById('detailCalonModal'));
             modal.show();
         } else {
@@ -329,7 +280,6 @@
     }
 }
 
-// Fungsi untuk menghitung usia
 function calculateAge(birthDate) {
     const today = new Date();
     const birth = new Date(birthDate);
@@ -343,47 +293,6 @@ function calculateAge(birthDate) {
     return age;
 }
 
-    // window.openEditModal = async function(id) {
-    //     try {
-    //         const res = await fetch(`/admin/calon-mahasiswa/${id}/data`);
-    //         const r = await res.json();
-            
-    //         if(r.success) {
-    //             const c = r.data;
-    //             document.getElementById('editCalonForm').action = `/admin/calon-mahasiswa/${id}`;
-    //             document.getElementById('edit_id').value = c.id;
-    //             document.getElementById('edit_nama').value = c.nama_lengkap;
-    //             document.getElementById('edit_email').value = c.user?.email ?? '';
-    //             document.getElementById('edit_program_studi').value = c.kode_program_studi;
-    //             document.getElementById('edit_asal').value = c.asal_sekolah;
-                
-    //             const modal = new bootstrap.Modal(document.getElementById('editCalonModal'));
-    //             modal.show();
-    //         } else {
-    //             alert('Gagal mengambil data calon mahasiswa');
-    //         }
-    //     } catch (error) {
-    //         console.error('Error:', error);
-    //         alert('Terjadi kesalahan saat mengambil data');
-    //     }
-    // }
-
-    // window.openVerifikasiModal = function(id, nama) {
-    //     document.getElementById('verif_nama').innerText = nama;
-    //     document.getElementById('verifikasiCalonForm').action = `/admin/calon-mahasiswa/${id}/verifikasi`;
-        
-    //     const modal = new bootstrap.Modal(document.getElementById('verifikasiCalonModal'));
-    //     modal.show();
-    // }
-
-    // window.openBatalkanVerifikasiModal = function(id, nama) {
-    //     document.getElementById('batalkan_verif_nama').innerText = nama;
-    //     document.getElementById('batalkanVerifikasiForm').action = `/admin/calon-mahasiswa/${id}/batalkan-verifikasi`;
-        
-    //     const modal = new bootstrap.Modal(document.getElementById('batalkanVerifikasiModal'));
-    //     modal.show();
-    // }
-
     window.openEditModal = async function(id) {
         try {
             const res = await fetch(`/admin/calon-mahasiswa/${id}/data`);
@@ -392,7 +301,6 @@ function calculateAge(birthDate) {
             if(r.success) {
                 const c = r.data;
                 
-                // Isi form edit
                 document.getElementById('editCalonForm').action = `/admin/calon-mahasiswa/${id}`;
                 document.getElementById('edit_id').value = c.id;
                 document.getElementById('edit_nama').value = c.nama_lengkap;
@@ -404,7 +312,6 @@ function calculateAge(birthDate) {
                 document.getElementById('edit_program_studi').value = c.kode_program_studi;
                 document.getElementById('edit_asal').value = c.asal_sekolah;
                 
-                // Tampilkan foto saat ini
                 const fotoPreview = document.getElementById('edit_foto_preview');
                 if (c.foto) {
                     fotoPreview.src = '/storage/' + c.foto;
@@ -412,7 +319,6 @@ function calculateAge(birthDate) {
                     fotoPreview.src = '/images/default-profile.png';
                 }
                 
-                // Tampilkan modal
                 const modal = new bootstrap.Modal(document.getElementById('editCalonModal'));
                 modal.show();
             } else {
@@ -440,7 +346,6 @@ function calculateAge(birthDate) {
         modal.show();
     }
 
-    // Preview gambar saat memilih file baru
     document.getElementById('edit_foto').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
@@ -452,7 +357,6 @@ function calculateAge(birthDate) {
         }
     });
 
-    // Inisialisasi DataTable
     $(document).ready(function() {
         $('#calonMahasiswaTable').DataTable({
             searching: false,

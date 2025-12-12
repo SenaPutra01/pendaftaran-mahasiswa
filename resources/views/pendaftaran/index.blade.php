@@ -240,7 +240,6 @@
         });
 }
 
-// Validasi form sebelum submit
 document.querySelector('form').addEventListener('submit', function(e) {
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('password_confirmation').value;

@@ -9,7 +9,7 @@ class Fakultas extends Model
 {
     use HasFactory;
 
-    protected $table = 'fakultas'; // Nama tabel eksplisit
+    protected $table = 'fakultas';
     protected $primaryKey = 'kode_fakultas';
     public $incrementing = false;
     protected $keyType = 'string';
