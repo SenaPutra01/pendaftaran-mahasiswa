@@ -220,8 +220,6 @@ flowchart TD
     UC11 --> UC12
 ```
 
----
-
 ## 5. Flowchart Proses Pendaftaran
 
 ```mermaid
@@ -234,12 +232,12 @@ flowchart TD
     E --> F[Melakukan Pembayaran via Midtrans]
     F --> G{Status Pembayaran?}
 
-    G -->|Pending| H[Tampilkan Tombol "Cek Status"]
+    G -->|Pending| H["Tampilkan Tombol 'Cek Status'"]
     G -->|Success| I[Status: Berhasil]
     G -->|Failed| J[Status: Gagal]
 
     H --> K[User Klik Tombol]
-    K --> L[Call /debug/sync/{order_id}]
+    K --> L[Call /debug/sync/order_id]
     L --> M{Sinkronisasi Berhasil?}
     M -->|Ya| I
     M -->|Tidak| H
@@ -255,6 +253,20 @@ flowchart TD
     Q --> S[Selesai]
     R --> S
 ```
+
+**Penjelasan Alur:**
+
+1. **Pendaftaran Awal**: Calon mahasiswa melakukan registrasi dan login
+2. **Pengisian Data**: Mengisi formulir dan mengunggah dokumen
+3. **Pembayaran**: Melakukan pembayaran melalui Midtrans
+4. **Status Pembayaran**:
+    - **Pending**: Muncul tombol "Cek Status" untuk sinkronisasi manual
+    - **Success**: Lanjut ke verifikasi admin
+    - **Failed**: Tampilkan error dan bisa ulangi pembayaran
+5. **Verifikasi Admin**: Admin mengecek kelengkapan data
+6. **Hasil Akhir**: Diterima atau ditolak
+
+Untuk tombol "Cek Status" di status pending, pengguna dapat mengklik tombol tersebut yang akan memanggil endpoint `/debug/sync/{order_id}` untuk sinkronisasi status pembayaran terbaru dari Midtrans.
 
 ---
 
