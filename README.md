@@ -60,9 +60,8 @@ Sistem pendaftaran mahasiswa online dengan integrasi pembayaran Midtrans. Aplika
 
 -   **Framework**: Laravel 12
 -   **Bahasa**: PHP 8.2, JavaScript
--   **Database**: MySQL / PostgreSQL
+-   **Database**: PostgreSQL
 -   **Frontend**: Blade, TailwindCSS, Bootstrap
--   **Build Tool**: Vite
 -   **Payment Gateway**: Midtrans
 
 ### Instalasi
@@ -399,3 +398,76 @@ flowchart LR
     K --> L[User Klik Cek Status]
     L --> M[Tampilkan Status Terbaru]
 ```
+
+## 📸 Tampilan Aplikasi
+
+Berikut adalah screenshot dari berbagai fitur dan halaman dalam aplikasi Pendaftaran Mahasiswa Universitas Terbuka Digital:
+
+### Tampilan Login
+
+Berikut adalah tampilan halaman login aplikasi yang digunakan oleh calon mahasiswa, admin, dan staff untuk mengakses sistem. Halaman ini memiliki formulir sederhana untuk email, password, serta opsi "Remember Me".
+![Halaman Login](./public/images/login.png)
+
+### Menu Admin
+
+#### Halaman Dashboard Admin
+
+Dashboard utama admin yang menampilkan statistik lengkap tentang pendaftaran, grafik aktivitas, dan notifikasi penting. Admin dapat melihat ringkasan keseluruhan sistem dari halaman ini.
+![Halaman Dashboard Admin](./public/images/dashboard-admin.png)
+
+#### Halaman Manage Fakultas
+
+Antarmuka untuk mengelola data fakultas yang tersedia di universitas. Admin dapat menambah, mengedit, atau menghapus fakultas serta melihat daftar lengkap fakultas yang ada.
+![Halaman Manage Fakultas](./public/images/manage-fakultas.png)
+
+#### Halaman Manage Prodi
+
+Halaman untuk mengelola program studi (prodi) di setiap fakultas. Admin dapat mengatur kuota pendaftaran, syarat khusus, dan informasi penting lainnya untuk setiap prodi.
+![Halaman Manage Prodi](./public/images/manage-prodi.png)
+
+#### Halaman Manage Data Pendaftar
+
+Panel kontrol untuk melihat dan memverifikasi data calon mahasiswa. Admin dapat meninjau dokumen, status pembayaran, dan melakukan approval atau rejection terhadap pendaftaran.
+![Halaman Manage Data Pendaftar](./public/images/manage-pendaftaran.png)
+
+#### Halaman Manage User
+
+Antarmuka untuk mengelola semua pengguna sistem termasuk admin, staff, dan calon mahasiswa. Fitur ini memungkinkan reset password, aktivasi akun, dan pengaturan role/permission.
+![Halaman Manage User](./public/images/manage-user.png)
+
+### Menu Calon Mahasiswa
+
+#### Halaman Register
+
+Formulir pendaftaran awal untuk calon mahasiswa baru. Pengguna baru dapat membuat akun dengan mengisi data dasar seperti nama, email, dan password.
+![Halaman Register](./public/images/register.png)
+
+#### Halaman Dashboard Mahasiswa
+
+Dashboard pribadi calon mahasiswa yang menampilkan status pendaftaran, progress pengisian formulir, notifikasi, dan tombol aksi untuk melanjutkan proses pendaftaran.
+![Halaman Dashboard Mahasiswa](./public/images/dashboard-mahasiswa.png)
+
+#### Halaman Alur Pendaftaran
+
+Halaman yang menjelaskan step-by-step proses pendaftaran dari awal hingga akhir. Menyediakan panduan visual dan penjelasan setiap tahapan yang harus dilalui.
+
+#### Halaman Data Diri
+
+Formulir lengkap untuk pengisian data pribadi calon mahasiswa termasuk informasi kontak, alamat, data orang tua, dan informasi pendidikan sebelumnya.
+![Halaman Data Diri](./public/images/data-diri.png)
+
+#### Halaman Pilih Program Studi
+
+Halaman pemilihan fakultas dan program studi. Calon mahasiswa dapat melihat daftar prodi yang tersedia, kuota, dan persyaratan khusus sebelum memilih.
+![Halaman Pilih Program Studi](./public/images/program-studi.png)
+
+#### Halaman Pilih Pembayaran
+
+Antarmuka untuk memilih metode pembayaran biaya pendaftaran melalui Midtrans. Menyediakan berbagai opsi seperti QRIS, virtual account, e-wallet, dan kartu kredit.
+![Halaman Pilih Pembayaran](./public/images/pilih-pembayaran.png)
+
+#### Halaman Status Pembayaran
+
+Halaman monitoring yang menampilkan status pembayaran secara real-time. Terdapat tombol "Cek Status" untuk sinkronisasi manual dan detail transaksi lengkap.
+![Halaman Status Pembayaran](./public/images/status-pembayaran.png)
+![Halaman Status Pembayaran](./public/images/cek-status-pembayaran.png)

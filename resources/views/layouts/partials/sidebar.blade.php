@@ -43,7 +43,7 @@
             </li>
 
             <li class="sidebar-menu-group-title">Reports</li>
-            <li class="dropdown">
+            {{-- <li class="dropdown">
                 <a href="javascript:void(0)">
                     <iconify-icon icon="hugeicons:invoice-03" class="menu-icon"></iconify-icon>
                     <span>Invoice</span>
@@ -56,7 +56,7 @@
                         </a>
                     </li>
                 </ul>
-            </li>
+            </li> --}}
 
             <li class="dropdown">
                 <a href="javascript:void(0)">
